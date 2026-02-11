@@ -11,7 +11,7 @@ Uma ferramenta poderosa para filtrar domínios maliciosos conhecidos no Bind9. E
 
 ---
 
-## ✨ Features
+## ✨ Funcionalidades
 
 - **Atualizações Automatizadas**: Baixa as versões mais recentes de `blockeddomains.db` e `blocked_domain_acl.conf`.
 - **Filtragem DNS**: Aplica políticas de segurança de forma integrada à sua instância do Bind9.
@@ -72,6 +72,6 @@ For a complete step-by-step guide on how to import the generated files into Thun
 
 👉 [**Filter known malicious domains in Bind9**](https://perciocastelo.com.br/blog/filter-known-malicious-domains-in-Bind9.html)
 
-## License 📄
+## Licença 📄
 
 Este projeto está licenciado sob a **GNU General Public License v3.0**. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
