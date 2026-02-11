@@ -1,7 +1,8 @@
 # Bind Filter 🛡️
 
-<img width="700" alt="BindFilter" src="https://github.com/user-attachments/assets/a42468cb-91a0-4838-933e-97c3a3a2151c" />
+Readme: [Português](README.pt-br.md)
 
+<img width="700" alt="BindFilter" src="https://github.com/user-attachments/assets/a42468cb-91a0-4838-933e-97c3a3a2151c" />
 
 ![License](https://img.shields.io/github/license/sr00t3d/bindfilter)
 ![Shell Script](https://img.shields.io/badge/shell-script-green)
@@ -10,20 +11,20 @@ A powerful tool to filter known malicious domains in Bind9. This script automate
 
 ---
 
-## Features
+## ✨ Features
 
 - **Automated Updates**: Download the latest `blockeddomains.db` and `blocked_domain_acl.conf`.
 - **DNS Filtering**: Seamlessly apply security policies to your Bind9 instance.
 - **Environment Check**: Built-in verification for Bind9 installation and config health.
 - **Version Control**: Auto-checks for script updates to ensure you have the latest security patches.
 
-## Requirements
+## 🛠️ Requirements
 
 - **OS**: Linux (Debian, Ubuntu, CentOS, RHEL supported).
 - **Service**: Bind9 (ISC BIND) installed.
 - **Tools**: `curl` and `sudo` privileges.
 
-## Quick Installation
+## 🚀 Quick Installation
 
 You can run the script directly without cloning the repo:
 
@@ -54,12 +55,23 @@ curl -s https://raw.githubusercontent.com/sr00t3d/bindfilter/main/bind_filter.sh
 
 ---
 
-## Troubleshooting
+## 🛠️ Troubleshooting
 
 - **Permissions**: Ensure the script has `+x` permission.
 - **Connectivity**: Verify if your server can reach `raw.githubusercontent.com`.
 - **Logs**: Check `journalctl -u named` if Bind9 fails to restart.
 
+## ⚠️ Disclaimer
+
+> [!WARNING]
+> This software is provided "as-is". While extensively tested in Dovecot environments, **always perform a full backup** of your Maildir directories before running any conversion script. The author is not responsible for any data loss.
+
+## 📚 Detailed Tutorial
+
+For a complete step-by-step guide on how to import the generated files into Thunderbird and troubleshoot common migration issues, check out my full article:
+
+👉 [**Filter known malicious domains in Bind9**](https://perciocastelo.com.br/blog/filter-known-malicious-domains-in-Bind9.html)
+
 ## License 📄
 
-This project is licensed under the **GNU General Public License v2.0**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for details.
