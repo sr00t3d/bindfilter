@@ -1,301 +1,300 @@
 #!/bin/bash
-# Author: Percio Andrade - percio@zendev.com.br
-#
-# Description:
-#   Script to filter known domains in Bind9 to prevent
-#   DNS spoofing and DNS hijacking.
-#
-# Features:
-#   - Bind9 installation and verification
-#   - Download and update of blocked zones
-#   - ACL configuration for blocking
-#   - Automatic restart of named service
-#
-# Usage:
-#   -r, --run             Run script to apply DNS filters
-#   -u, --update [TARGET] Update files. Targets:
-#                         all   - Update all files
-#                         zone  - Update blocked DNS zones
-#                         acl   - Update ACL configuration
-#   -c, --check          Check if Bind is properly configured
-#   -h, --help           Show this help message
-#
-# Examples:
-#   ./bind_filter.sh -r                Run the script
-#   ./bind_filter.sh -u all            Update all files
-#   ./bind_filter.sh -c                Check Bind installation
+################################################################################
+#                                                                              #
+#   PROJECT: Bind9 DNS Filter & Security                                       #
+#   VERSION: 1.3.0                                                             #
+#                                                                              #
+#   AUTHOR:  Percio Andrade                                                    #
+#   CONTACT: percio@zendev.com.br | contato@perciocastelo.com.br               #
+#   WEB:     https://perciocastelo.com.br                                      #
+#                                                                              #
+#   INFO:                                                                      #
+#   Prevent DNS spoofing/hijacking by blocking specific zones in Bind9.        #
+#                                                                              #
+################################################################################
 
-# Define Variables
-SCRIPT_SRC_VERSION="1.2"
+# --- CONFIGURATION ---
 SCRIPT_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/bind_filter.sh"
-BLOCKED_ZONE="/etc/bind/zones/blockeddomains.db"
+BLOCKED_ZONE_FILE="/etc/bind/zones/blockeddomains.db"
 BLOCKED_ZONE_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blockeddomains.db"
-ACL_CONFIG="/etc/bind/blocked_domain_acl.conf"
+ACL_CONFIG_FILE="/etc/bind/blocked_domain_acl.conf"
 ACL_CONFIG_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blocked_domain_acl.conf"
-OS_VERSION=$(grep '^NAME=' /etc/os-release | cut -d'"' -f2)
-REMOTE_VERSION=$(curl -s "$SCRIPT_URL" | grep -o 'SCRIPT_SRC_VERSION="[^"]*"' | awk -F'"' '{print $2}')
 
-# text
-LOG_NOT_ROOT="This script must be run as root."
-ERROR_BIND_NOT_INSTALLED="Bind9 is not installed. Please install it to proceed."
-LOG_LOCATED_NAMED_CONF="Found named configuration file: $file"
-LOG_NOT_LOCATED_NAMED_CONF="Named configuration file not found."
-LOG_VERSION_OUTDATED="Local version ($SCRIPT_SRC_VERSION) is outdated. Remote version: ($REMOTE_VERSION)."
-LOG_VERSION_UPDATED="Script is up-to-date (version: $SCRIPT_SRC_VERSION)."
-LOG_FILES_NOT_FOUND="Files not found:"
-LOG_FILES_NOT_CREATED="Failed to create directory"
-LOG_FAILED_DOWNLOAD="Failed to download"
-LOG_RESTART_NAMED="Restarting named service..."
-LOG_RESTART_SUCCESS="Named service restarted successfully."
-LOG_RESTART_FAILED="Failed to restart named service."
-LOG_ADDING_INCLUDE="Adding include line for ACL configuration..."
-LOG_INCLUDE_EXISTS="Include line already exists"
-LOG_UPDATE_FILES="Updating files..."
-LOG_UPDATE_FILES_ZONES="Zone file downloader"
-LOG_UPDATE_FILES_ACL="ACL file downloader"
-LOG_INSTALL_BIND="Do you want to install bind? (yY/nN)"
-LOG_BIND_FOUND="Bind9 found. Continuing..."
-LOG_PACKAGE_MANAGER="Unsupported package manager. Please install $package manually."
-LOG_CREATING_DIR="Creating directory $dir..."
-LOG_DOWNLOAD_COMPLETE="Download complete."
-LOG_FAILED_INCLUDE="Failed to add include line to $BIND_CONFIG"
+# Default directories (will be detected later)
+BIND_DIR_DEBIAN="/etc/bind"
+BIND_DIR_RHEL="/etc"
+# ---------------------
 
-# Check if script is run as root
-checkRoot() {
-    if [[ $EUID -ne 0 ]]; then
-        logError "$LOG_NOT_ROOT"
-        exit 1
-    fi
-}
+# Detect System Language
+SYSTEM_LANG="${LANG:0:2}"
 
-defineVersion() {
-    if [[ "$SCRIPT_SRC_VERSION" != "$REMOTE_VERSION" ]]; then
-        echo "$LOG_VERSION_OUTDATED"
-    else
-        echo "$LOG_VERSION_UPDATED"
-    fi
-}
+if [[ "$SYSTEM_LANG" == "pt" ]]; then
+    # Portuguese Strings
+    MSG_USAGE="Uso: $0 [OPÇÕES]"
+    MSG_ERR_ROOT="ERRO: Este script deve ser executado como root."
+    MSG_ERR_ARG="ERRO: Opção inválida ou argumento faltando."
+    MSG_ERR_CURL="ERRO: 'curl' não encontrado. Instale-o primeiro."
+    MSG_BIND_CHECK="[!] Verificando instalação do Bind9..."
+    MSG_BIND_OK="[+] Bind9 detectado."
+    MSG_BIND_FAIL="ERRO: Bind9 não encontrado."
+    MSG_CONF_FOUND="[+] Arquivo de configuração encontrado:"
+    MSG_CONF_FAIL="ERRO: Configuração do Named não encontrada."
+    MSG_DIR_CREATE="[+] Criando diretório:"
+    MSG_DOWN_ZONE="[+] Baixando lista de zonas bloqueadas..."
+    MSG_DOWN_ACL="[+] Baixando configuração de ACL..."
+    MSG_DOWN_FAIL="ERRO: Falha ao baixar"
+    MSG_ACL_ADD="[+] Adicionando include da ACL na configuração..."
+    MSG_ACL_EXIST="[!] Include da ACL já existe na configuração."
+    MSG_RESTARTING="[!] Reiniciando serviço DNS ("
+    MSG_RESTART_OK="[+] Serviço reiniciado com sucesso."
+    MSG_RESTART_FAIL="ERRO: Falha ao reiniciar o serviço."
+    MSG_UPDATE_ALL="[!] Atualizando TODOS os arquivos..."
+    MSG_UPDATE_ZONE="[!] Atualizando apenas ZONAS..."
+    MSG_UPDATE_ACL="[!] Atualizando apenas ACL..."
+    MSG_CHECK_MODE="--- MODO DE VERIFICAÇÃO ---"
+    MSG_CHECK_FILES="Verificando arquivos:"
+    MSG_MISSING="AUSENTE"
+    MSG_OK="OK"
+else
+    # English Strings (Default)
+    MSG_USAGE="Usage: $0 [OPTIONS]"
+    MSG_ERR_ROOT="ERROR: This script must be run as root."
+    MSG_ERR_ARG="ERROR: Invalid option or missing argument."
+    MSG_ERR_CURL="ERROR: 'curl' not found. Please install it first."
+    MSG_BIND_CHECK="[!] Checking Bind9 installation..."
+    MSG_BIND_OK="[+] Bind9 detected."
+    MSG_BIND_FAIL="ERROR: Bind9 not found."
+    MSG_CONF_FOUND="[+] Configuration file found:"
+    MSG_CONF_FAIL="ERROR: Named configuration not found."
+    MSG_DIR_CREATE="[+] Creating directory:"
+    MSG_DOWN_ZONE="[+] Downloading blocked zones list..."
+    MSG_DOWN_ACL="[+] Downloading ACL configuration..."
+    MSG_DOWN_FAIL="ERROR: Failed to download"
+    MSG_ACL_ADD="[+] Adding ACL include line to config..."
+    MSG_ACL_EXIST="[!] ACL include already exists in config."
+    MSG_RESTARTING="[!] Restarting DNS service ("
+    MSG_RESTART_OK="[+] Service restarted successfully."
+    MSG_RESTART_FAIL="ERROR: Failed to restart service."
+    MSG_UPDATE_ALL="[!] Updating ALL files..."
+    MSG_UPDATE_ZONE="[!] Updating ZONES only..."
+    MSG_UPDATE_ACL="[!] Updating ACL only..."
+    MSG_CHECK_MODE="--- CHECK MODE ---"
+    MSG_CHECK_FILES="Checking files:"
+    MSG_MISSING="MISSING"
+    MSG_OK="OK"
+fi
 
-# Check Named Configuration File
-checkNamedFile() {
-    local files=("/etc/bind/named.conf" "/etc/named.conf")
-    for file in "${files[@]}"; do
-        if [[ -f "$file" ]]; then
-            logMessage "$LOG_LOCATED_NAMED_CONF"
-            BIND_CONFIG="$file"
-            return 0
-        fi
-    done
-    logError "$LOG_NOT_LOCATED_NAMED_CONF"
-    exit 1
-}
+# Help Function
+function display_help() {
+    cat <<-EOF
 
-# Function to log messages
-logMessage() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
-}
+$MSG_USAGE
 
-# Function to log errors
-logError() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >&2
-}
+Options:
+  -r, --run             Run the script (Download, Config, Restart)
+  -u, --update [TARGET] Update specific files. Targets:
+                          all   - Update zones and ACL
+                          zone  - Update blocked zones only
+                          acl   - Update ACL config only
+  -c, --check           Verify configuration and files
+  -h, --help            Show this help message
 
-# Check Bind Installation
-checkBindInstalled() {
-    if ! bind -v named &>/dev/null; then
-        logError "$ERROR_BIND_NOT_INSTALLED"
-        logError "$LOG_INSTALL_BIND"
-        read -p "Please choose: " BIND_INSTALL
-        local package="$1"
-        if command -v apt >/dev/null; then
-            apt update && apt install -y "$package"
-        elif command -v yum >/dev/null; then
-            yum install -y "$package"
-        else
-            logError "$LOG_PACKAGE_MANAGER"
-            exit 1
-        fi
-    fi
-    logMessage "$LOG_BIND_FOUND"
-}
-
-# Check Directory Existence
-checkDirExists() {
-    local dir="/etc/bind/zones/"
-    if [[ ! -d "$dir" ]]; then
-        logMessage "$LOG_CREATING_DIR..."
-        mkdir -p "$dir" || {
-            logError "$LOG_FILES_NOT_CREATED $dir"
-            exit 1
-        }
-    fi
-}
-
-# Check Line Existence
-checkLineExists() {
-    grep -q "include \"$ACL_CONFIG\";" "$BIND_CONFIG"
-}
-
-# Check File Existence
-checkFilesExist() {
-    local MISSING_FILES=()
-    [[ ! -f "$BLOCKED_ZONE" ]] && MISSING_FILES+=("$BLOCKED_ZONE")
-    [[ ! -f "$ACL_CONFIG" ]] && MISSING_FILES+=("$ACL_CONFIG")
-
-    if [[ ${#MISSING_FILES[@]} -gt 0 ]]; then
-        logMessage "$LOG_FILES_NOT_FOUND"
-        for file in "${MISSING_FILES[@]}"; do
-            logMessage "  - $file"
-        done
-        return 1
-    fi
-    return 0
-}
-
-# Download Files
-downloadBlockedZone() {
-    logMessage "$LOG_UPDATE_FILES"
-    curl -s -o "$BLOCKED_ZONE" "$BLOCKED_ZONE_URL" || {
-        logError "$LOG_FAILED_DOWNLOAD $BLOCKED_ZONE"
-        exit 1
-    }
-}
-
-# Download ACL
-downloadACLConfig() {
-    curl -s -o "$ACL_CONFIG" "$ACL_CONFIG_URL" || {
-        logError "$LOG_FAILED_DOWNLOAD $ACL_CONFIG"
-        exit 1
-    }
-    logMessage "$LOG_DOWNLOAD_COMPLETE"
-}
-
-# Add Include Line
-addIncludeLine() {
-    if ! checkLineExists; then
-        logMessage "$LOG_ADDING_INCLUDE"
-        echo "include \"$ACL_CONFIG\";" >>"$BIND_CONFIG" || {
-            logError "$LOG_FAILED_INCLUDE"
-            exit 1
-        }
-    else
-        logMessage "$LOG_INCLUDE_EXISTS"
-    fi
-}
-
-# Restart Named Service
-restartNamed() {
-    logMessage "$LOG_RESTART_NAMED"
-    if systemctl restart named; then
-        logMessage "$LOG_RESTART_SUCCESS"
-    else
-        logError "$LOG_RESTART_FAILED"
-        exit 1
-    fi
-}
-
-# Parse
-parseArgs() {
-    while getopts "ru:a:lch" opt; do
-        case "$opt" in
-        r)
-            ACTION="run"
-            checkNamedFile
-            checkBindInstalled
-            checkDirExists
-            checkLineExists
-            checkFilesExist
-            downloadBlockedZone
-            downloadACLConfig
-            addIncludeLine
-            restartNamed
-            ;;
-        u)
-            ACTION="update"
-            TARGET="$OPTARG"
-            # Check if -z or -a is passed after -u
-            case "$TARGET" in
-            -z)
-                logMessage "$LOG_UPDATE_FILES_ZONES"
-                downloadBlockedZone
-                ;;
-            -a)
-                logMessage "$LOG_UPDATE_FILES_ACL"
-                downloadACLConfig
-                ;;
-            --all)
-                logMessage "$LOG_UPDATE_FILES_ZONES"
-                downloadBlockedZone
-                logMessage "$LOG_UPDATE_FILES_ACL"
-                downloadACLConfig
-                ;;
-            *)
-                echo "Invalid target for update: $TARGET"
-                showHelp
-                exit 1
-                ;;
-            esac
-            ;;
-        c)
-            ACTION="check"
-            checkNamedFile
-            checkBindInstalled
-            checkDirExists
-            checkLineExists
-            checkFilesExist
-            addIncludeLine
-            ;;
-        h)
-            showHelp
-            exit 0
-            ;;
-        *)
-            logError "Invalid option"
-            showHelp
-            exit 1
-            ;;
-        esac
-    done
-}
-
-# Show help message
-showHelp() {
-    cat <<EOF
-Usage: $0 [OPTIONS]
-
-OPTIONS:
-  -r, --run             Run the script to apply DNS filters.
-  -u, --update [TARGET] Update files. Targets:
-                        all   - Update all files
-                        zone  - Update blocked DNS zones
-                        acl   - Update ACL configuration
-  -c, --check           Verify if Bind is properly configured.
-  -h, --help            Show this help message.
-
-EXAMPLES:
-  $0 -r                Run the script
-  $0 -u all            Update all files
-  $0 -c                Check Bind installation
 EOF
 }
 
-# Main Function
-main() {
-    checkRoot
-    if [[ $# -eq 0 ]]; then
-        showHelp
-        exit 0
-    fi
-    parseArgs "$@"
+# --- CORE FUNCTIONS ---
+
+function log() {
+    echo "[$(date '+%H:%M:%S')] $1"
 }
 
-# Execute Main Function
-echo -e "
+function check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo "$MSG_ERR_ROOT"
+        exit 1
+    fi
+}
+
+function detect_service_and_config() {
+    # Detect Config File
+    if [[ -f "/etc/bind/named.conf" ]]; then
+        BIND_CONFIG="/etc/bind/named.conf"
+        SERVICE_NAME="bind9"
+        ZONE_DIR="/etc/bind/zones"
+    elif [[ -f "/etc/named.conf" ]]; then
+        BIND_CONFIG="/etc/named.conf"
+        SERVICE_NAME="named"
+        ZONE_DIR="/var/named/zones" # RHEL standard often varies, adjusting to safe default
+        # Override global variables for RHEL paths if needed
+        BLOCKED_ZONE_FILE="$ZONE_DIR/blockeddomains.db"
+        ACL_CONFIG_FILE="/etc/named.blocked_acl.conf"
+    else
+        echo "$MSG_CONF_FAIL"
+        exit 1
+    fi
+}
+
+function check_requirements() {
+    if ! command -v curl &> /dev/null; then
+        echo "$MSG_ERR_CURL"
+        exit 1
+    fi
+
+    echo "$MSG_BIND_CHECK"
+    # Check binary existence
+    if ! command -v named &> /dev/null && ! command -v /usr/sbin/named &> /dev/null; then
+        echo "$MSG_BIND_FAIL"
+        exit 1
+    fi
+    echo "$MSG_BIND_OK"
+    echo "$MSG_CONF_FOUND $BIND_CONFIG"
+}
+
+function prepare_directories() {
+    local dir=$(dirname "$BLOCKED_ZONE_FILE")
+    if [[ ! -d "$dir" ]]; then
+        echo "$MSG_DIR_CREATE $dir"
+        mkdir -p "$dir"
+    fi
+}
+
+function download_zone() {
+    echo "$MSG_DOWN_ZONE"
+    prepare_directories
+    if ! curl -s -o "$BLOCKED_ZONE_FILE" "$BLOCKED_ZONE_URL"; then
+        echo "$MSG_DOWN_FAIL $BLOCKED_ZONE_FILE"
+        exit 1
+    fi
+}
+
+function download_acl() {
+    echo "$MSG_DOWN_ACL"
+    if ! curl -s -o "$ACL_CONFIG_FILE" "$ACL_CONFIG_URL"; then
+        echo "$MSG_DOWN_FAIL $ACL_CONFIG_FILE"
+        exit 1
+    fi
+}
+
+function configure_bind() {
+    # Check if include exists
+    if grep -q "$(basename "$ACL_CONFIG_FILE")" "$BIND_CONFIG"; then
+        echo "$MSG_ACL_EXIST"
+    else
+        echo "$MSG_ACL_ADD"
+        # Add include at the end of the block or file
+        echo "include \"$ACL_CONFIG_FILE\";" >> "$BIND_CONFIG"
+    fi
+}
+
+function restart_service() {
+    echo "$MSG_RESTARTING$SERVICE_NAME)..."
+    
+    # Validation before restart
+    if command -v named-checkconf &> /dev/null; then
+        if ! named-checkconf "$BIND_CONFIG"; then
+            echo "Config Check Failed! Aborting restart to prevent downtime."
+            exit 1
+        fi
+    fi
+
+    if systemctl restart "$SERVICE_NAME"; then
+        echo "$MSG_RESTART_OK"
+    else
+        echo "$MSG_RESTART_FAIL"
+        exit 1
+    fi
+}
+
+function run_check() {
+    echo "$MSG_CHECK_MODE"
+    echo "$MSG_CHECK_FILES"
+    
+    for file in "$BIND_CONFIG" "$BLOCKED_ZONE_FILE" "$ACL_CONFIG_FILE"; do
+        if [[ -f "$file" ]]; then
+            echo " [OK] $file"
+        else
+            echo " [MISSING] $file"
+        fi
+    done
+    
+    echo -n "Service Status ($SERVICE_NAME): "
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        echo "ACTIVE"
+    else
+        echo "INACTIVE/FAILED"
+    fi
+}
+
+# --- MAIN EXECUTION ---
+
+check_root
+
+# ASCII ART
+echo "
  ______ __           __ _______ __ __ __              
 |   __ \__|.-----.--|  |    ___|__|  |  |_.-----.----.
 |   __ <  ||     |  _  |    ___|  |  |   _|  -__|   _|
 |______/__||__|__|_____|___|   |__|__|____|_____|__|  
-Version: $(defineVersion)
 "
 
-main "$@"
+detect_service_and_config
+
+# Parse Arguments
+if [[ $# -eq 0 ]]; then
+    display_help
+    exit 0
+fi
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -r|--run)
+            check_requirements
+            download_zone
+            download_acl
+            configure_bind
+            restart_service
+            exit 0
+            ;;
+        -u|--update)
+            TARGET="$2"
+            shift # Skip target argument
+            
+            check_requirements
+            case "$TARGET" in
+                all)
+                    echo "$MSG_UPDATE_ALL"
+                    download_zone
+                    download_acl
+                    ;;
+                zone)
+                    echo "$MSG_UPDATE_ZONE"
+                    download_zone
+                    ;;
+                acl)
+                    echo "$MSG_UPDATE_ACL"
+                    download_acl
+                    ;;
+                *)
+                    echo "$MSG_ERR_ARG (all|zone|acl)"
+                    exit 1
+                    ;;
+            esac
+            restart_service
+            exit 0
+            ;;
+        -c|--check)
+            run_check
+            exit 0
+            ;;
+        -h|--help)
+            display_help
+            exit 0
+            ;;
+        *)
+            echo "$MSG_ERR_ARG $1"
+            display_help
+            exit 1
+            ;;
+    esac
+    shift
+done
