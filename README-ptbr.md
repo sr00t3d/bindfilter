@@ -61,16 +61,16 @@ curl -s https://raw.githubusercontent.com/sr00t3d/bindfilter/main/bind_filter.sh
 - **Conectividade**: Verifique se o seu servidor consegue alcançar `raw.githubusercontent.com`.
 - **Logs**: Verifique `journalctl -u named` se o Bind9 falhar ao reiniciar.
 
-## ⚠️ Disclaimer
+## ⚠️ Aviso Legal
 
 > [!WARNING]
-> Este software é fornecido "como está". Embora tenha sido amplamente testado em ambientes Dovecot, **sempre faça um backup completo** dos seus diretórios Maildir antes de executar qualquer script de conversão. O autor não se responsabiliza por qualquer perda de dados.
+> Este software é fornecido "como está". Certifique-se sempre de testar primeiro em um ambiente de desenvolvimento. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto em dados causado por esta ferramenta.
 
 ## 📚 Detailed Tutorial
 
-For a complete step-by-step guide on how to import the generated files into Thunderbird and troubleshoot common migration issues, check out my full article:
+Para um guia completo, passo a passo, confira meu artigo completo:
 
-👉 [**Filter known malicious domains in Bind9**](https://perciocastelo.com.br/blog/filter-known-malicious-domains-in-Bind9.html)
+👉 [**Filtrar domínios maliciosos conhecidos no Bind9**](https://perciocastelo.com.br/blog/filter-known-malicious-domains-in-Bind9.html)
 
 ## Licença 📄
 
