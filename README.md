@@ -1,6 +1,6 @@
 # Bind Filter 🛡️
 
-Readme: [Português](README.pt-br.md)
+Readme: [Português](README-ptbr.md)
 
 <img width="700" alt="BindFilter" src="https://github.com/user-attachments/assets/a42468cb-91a0-4838-933e-97c3a3a2151c" />
 
