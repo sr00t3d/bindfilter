@@ -2,10 +2,10 @@
 
 Readme: [Português](README-ptbr.md)
 
-<img width="700" alt="BindFilter" src="https://github.com/user-attachments/assets/a42468cb-91a0-4838-933e-97c3a3a2151c" />
-
 ![License](https://img.shields.io/github/license/sr00t3d/bindfilter)
 ![Shell Script](https://img.shields.io/badge/shell-script-green)
+
+<img width="700" alt="BindFilter" src="bindfilter-cover.webp" />
 
 A powerful tool to filter known malicious domains in Bind9. This script automates the protection against DNS spoofing and DNS hijacking by keeping your blocklists updated and properly configured.
 
