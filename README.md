@@ -1,6 +1,6 @@
 # Bind Filter 🛡️
 
-Readme: [Português](README-ptbr.md)
+Readme: [BR](README-ptbr.md)
 
 ![License](https://img.shields.io/github/license/sr00t3d/bindfilter)
 ![Shell Script](https://img.shields.io/badge/shell-script-green)
@@ -64,11 +64,11 @@ curl -s https://raw.githubusercontent.com/sr00t3d/bindfilter/main/bind_filter.sh
 ## ⚠️ Legal Notice
 
 > [!WARNING]
-> This software is provided "as is". Always make sure to test first in a development environment. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
+> This software is provided "as is." Always ensure you have explicit permission before executing it. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
 
 ## 📚 Detailed Tutorial
 
-For a complete step-by-step guide, check out my full article:
+For a complete, step-by-step guide, check out my full article:
 
 👉 [**Filter known malicious domains in Bind9**](https://perciocastelo.com.br/blog/filter-known-malicious-domains-in-Bind9.html)
 

@@ -1,6 +1,6 @@
 # Bind Filter 🛡️
 
-Readme: [English](README.md)
+Readme: [EN](README.md)
 
 ![License](https://img.shields.io/github/license/sr00t3d/bindfilter)
 ![Shell Script](https://img.shields.io/badge/shell-script-green)
@@ -64,7 +64,7 @@ curl -s https://raw.githubusercontent.com/sr00t3d/bindfilter/main/bind_filter.sh
 ## ⚠️ Aviso Legal
 
 > [!WARNING]
-> Este software é fornecido "como está". Certifique-se sempre de testar primeiro em um ambiente de desenvolvimento. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto em dados causado por esta ferramenta.
+> Este software é fornecido "tal como está". Certifique-se sempre de ter permissão explícita antes de executar. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto nos dados causados ​​por esta ferramenta.
 
 ## 📚 Detailed Tutorial
 

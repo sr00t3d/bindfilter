@@ -1,24 +1,23 @@
-#!/bin/bash
-################################################################################
-#                                                                              #
-#   PROJECT: Bind9 DNS Filter & Security                                       #
-#   VERSION: 1.3.0                                                             #
-#                                                                              #
-#   AUTHOR:  Percio Andrade                                                    #
-#   CONTACT: percio@zendev.com.br | contato@perciocastelo.com.br               #
-#   WEB:     https://perciocastelo.com.br                                      #
-#                                                                              #
-#   INFO:                                                                      #
-#   Prevent DNS spoofing/hijacking by blocking specific zones in Bind9.        #
-#                                                                              #
-################################################################################
+#!/usr/bin/env bash
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║                                                                           ║
+# ║   Bind9 DNS Filter & Security v1.3.0                                      ║
+# ║                                                                           ║
+# ╠═══════════════════════════════════════════════════════════════════════════╣
+# ║   Autor:   Percio Castelo                                                 ║
+# ║   Contato: percio@evolya.com.br | contato@perciocastelo.com.br            ║
+# ║   Web:     https://perciocastelo.com.br                                   ║
+# ║                                                                           ║
+# ║   Função:  Prevent DNS spoofing/hijacking by blocking                     ║
+# ║            specific zones in Bind9.                                       ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 # --- CONFIGURATION ---
-SCRIPT_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/bind_filter.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/sr00t3d/bindfilter/refs/heads/main/bind_filter.sh"
 BLOCKED_ZONE_FILE="/etc/bind/zones/blockeddomains.db"
-BLOCKED_ZONE_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blockeddomains.db"
+BLOCKED_ZONE_URL="https://raw.githubusercontent.com/sr00t3d/bindfilter/refs/heads/main/blockeddomains.db"
 ACL_CONFIG_FILE="/etc/bind/blocked_domain_acl.conf"
-ACL_CONFIG_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blocked_domain_acl.conf"
+ACL_CONFIG_URL="https://raw.githubusercontent.com/sr00t3d/bindfilter/refs/heads/main/blocked_domain_acl.conf"
 
 # Default directories (will be detected later)
 BIND_DIR_DEBIAN="/etc/bind"
