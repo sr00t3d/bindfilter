@@ -26,16 +26,24 @@ Uma ferramenta poderosa para filtrar domínios maliciosos conhecidos no Bind9. E
 
 ## 🚀 Instalação Rápida
 
-Você pode executar o script diretamente sem clonar o repositório:
+1. **Baixe o arquivo no servidor:**
 
 ```bash
-curl -s https://raw.githubusercontent.com/sr00t3d/bindfilter/main/bind_filter.sh | sudo bash -s -- -r
+git clone https://github.com/sr00t3d/bindfilter/
 ```
 
-*Nota: Sempre revise scripts antes de executá-los com privilégios de superusuário (sudo).*
+2. **Dê permissão de execução:**
 
-## Uso
+```bash
+cd bindfilter/
+chmod +x bind_filter.sh
+```
 
+3. **Execute o script:**
+
+```bash
+./bind_filter.sh VALOR
+```
 ### Opções
 
 | Opções | Descrição |
@@ -47,11 +55,88 @@ curl -s https://raw.githubusercontent.com/sr00t3d/bindfilter/main/bind_filter.sh
 | `-c, --check` | Valida o ambiente Bind9 atual. |
 | `-h, --help` | Exibe mensagem de ajuda. |
 
-### Instalação Manual
+Exemplos:
 
-1. **Clonar**: `git clone https://github.com/sr00t3d/bindfilter.git`
-2. **Acessar**: `cd bindfilter`
-3. **Executar**: `chmod +x bind_filter.sh && sudo ./bind_filter.sh -r`
+Instalar a configuração:
+
+```bash
+./bind_filter.sh -r
+
+[!] Checking Bind9 installation...
+[+] Bind9 detected.
+[+] Configuration file found: /etc/bind/named.conf
+[+] Downloading blocked zones list...
+[+] Downloading ACL configuration...
+[!] ACL include already exists in config.
+[!] Restarting DNS service (bind9)...
+[+] Service restarted successfully.
+```
+
+**Atualizar todos os arquivo de configuração:**
+
+
+```bash
+./bind_filter.sh -u all
+
+[!] Checking Bind9 installation...
+[+] Bind9 detected.
+[+] Configuration file found: /etc/bind/named.conf
+[!] Updating ALL files...
+[+] Downloading blocked zones list...
+[+] Downloading ACL configuration...
+[!] Restarting DNS service (bind9)...
+[+] Service restarted successfully.
+```
+
+**Verifica as configurações:**
+
+```bash
+./bind_filter.sh -c
+
+--- CHECK MODE ---
+Checking files:
+ [OK] /etc/bind/named.conf
+ [OK] /etc/bind/zones/blockeddomains.db
+ [OK] /etc/bind/blocked_domain_acl.conf
+
+ACTIVE
+```
+
+*Nota: Sempre revise scripts antes de executá-los com privilégios de superusuário (sudo).*
+
+## Resultados de zona sem autoridade
+
+Domínio `bradesco.com.br` **EXISTE** na `/etc/bind/blocked_domain_acl.conf`
+
+```bash
+grep bradesco.com.br /etc/bind/blocked_domain_acl.conf 
+zone "bradesco.com.br" {type master; file "/etc/bind/zones/blockeddomains.db";};
+```
+
+Resposta de autoridade `0`:
+
+```bash
+dig @localhost bradesco.com.br | grep AUTHORITY
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+```
+
+Domínio `bradesco2.com.br` **NÃO EXISTE** na `/etc/bind/blocked_domain_acl.conf`
+
+Resposta de autoridade `1`:
+
+```bash
+dig @localhost bradesco2.com.br | grep AUTHORITY
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+```
+
+## ⚠️ systemctl
+
+- O script utiliza do `systemctl` para reiniciar os serviços, você pode utilizar o `service` para reiniciar sem problemas.
+- Se o seu bind9 está em um diretorio de instalação padrão, exemplo, `/var/lib/bind/` crie um syslink para o named:
+
+```bash
+ln -s /var/lib/bind/ /var/named
+```
 
 ---
 
