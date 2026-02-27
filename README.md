@@ -129,7 +129,7 @@ dig @localhost bradesco2.com.br | grep AUTHORITY
 ## ⚠️ systemctl
 
 * The script uses `systemctl` to restart services, but you can use `service` to restart manually without issues.
-* If your Bind9 is in a non-standard installation directory (e.g., `/var/lib/bind/`), create a symlink to named:
+* If your Bind9 is in a non-standard installation directory (e.g., `/var/lib/bind/`), create a symlink to named or change variable BIND_DIR_DEBIAN
 
 ```bash
 ln -s /var/lib/bind/ /var/named

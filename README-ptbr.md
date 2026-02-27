@@ -132,7 +132,7 @@ dig @localhost bradesco2.com.br | grep AUTHORITY
 ## ⚠️ systemctl
 
 - O script utiliza do `systemctl` para reiniciar os serviços, você pode utilizar o `service` para reiniciar sem problemas.
-- Se o seu bind9 está em um diretorio de instalação padrão, exemplo, `/var/lib/bind/` crie um syslink para o named:
+- Se o seu bind9 está em um diretorio de instalação padrão, exemplo, `/var/lib/bind/` crie um syslink para o named ou altere a variavel BIND_DIR_DEBIAN
 
 ```bash
 ln -s /var/lib/bind/ /var/named
