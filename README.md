@@ -1,6 +1,8 @@
-# Bind Filter 🛡️
+# Bind Filter
 
-Readme: [BR](README.md)
+Readme: [BR](README-ptbr.md)
+
+![License](https://img.shields.io/github/license/sr00t3d/bindfilter) ![Shell Script](https://img.shields.io/badge/shell-script-green)
 
 <img width="700" alt="BindFilter" src="bindfilter-cover.webp" />
 
@@ -8,20 +10,20 @@ A powerful tool to filter known malicious domains in Bind9. This script automate
 
 ---
 
-## ✨ Features
+## Features
 
 * **Automated Updates**: Downloads the latest versions of `blockeddomains.db` and `blocked_domain_acl.conf`.
 * **DNS Filtering**: Applies security policies seamlessly into your Bind9 instance.
 * **Environment Check**: Native verification of Bind9 installation and configuration integrity.
 * **Version Control**: Automatically checks if the script has updates to ensure you have the latest security patches.
 
-## 🛠️ Requirements
+## Requirements
 
 * **OS**: Linux (Debian, Ubuntu, CentOS, RHEL supported).
 * **Service**: Bind9 (ISC BIND) installed.
 * **Tools**: `curl` and `sudo` privileges.
 
-## 🚀 Quick Installation
+## Quick Installation
 
 1. **Clone the repository on the server:**
 
@@ -126,7 +128,7 @@ dig @localhost bradesco2.com.br | grep AUTHORITY
 ;; flags: qr aa rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
 ```
 
-## ⚠️ systemctl
+## systemctl
 
 * The script uses `systemctl` to restart services, but you can use `service` to restart manually without issues.
 * If your Bind9 is in a non-standard installation directory (e.g., `/var/lib/bind/`), create a symlink to named or change variable BIND_DIR_DEBIAN
@@ -135,25 +137,23 @@ dig @localhost bradesco2.com.br | grep AUTHORITY
 ln -s /var/lib/bind/ /var/named
 ```
 
----
-
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 * **Permissions**: Ensure the script has execution permission (`+x`).
 * **Connectivity**: Verify if your server can reach `raw.githubusercontent.com`.
 * **Logs**: Check `journalctl -u named` if Bind9 fails to restart.
 
-## ⚠️ Legal Disclaimer
+## Legal Disclaimer
 
 > [!WARNING]
 > This software is provided "as is". Always ensure you have explicit permission before execution. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
 
-## 📚 Detailed Tutorial
+## Detailed Tutorial
 
 For a complete, step-by-step guide, check out my full article:
 
-👉 **[Filter known malicious domains in Bind9](https://perciocastelo.com.br/blog/filter-known-malicious-domains-in-Bind9.html)**
+👉 [**Filtering known malicious domains in Bind9**](https://perciocastelo.com.br/blog/filtering-known-malicious-domains-in-Bind9.html)
 
-## License 📄
+## License
 
-This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE](https://www.google.com/search?q=LICENSE) file for more details.
+This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE] file for more details.

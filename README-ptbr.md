@@ -1,9 +1,8 @@
-# Bind Filter 🛡️
+# Bind Filter
 
 Readme: [EN](README.md)
 
-![License](https://img.shields.io/github/license/sr00t3d/bindfilter)
-![Shell Script](https://img.shields.io/badge/shell-script-green)
+![License](https://img.shields.io/github/license/sr00t3d/bindfilter) ![Shell Script](https://img.shields.io/badge/shell-script-green)
 
 <img width="700" alt="BindFilter" src="bindfilter-cover.webp" />
 
@@ -11,20 +10,20 @@ Uma ferramenta poderosa para filtrar domínios maliciosos conhecidos no Bind9. E
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 - **Atualizações Automatizadas**: Baixa as versões mais recentes de `blockeddomains.db` e `blocked_domain_acl.conf`.
 - **Filtragem DNS**: Aplica políticas de segurança de forma integrada à sua instância do Bind9.
 - **Verificação de Ambiente**: Verificação nativa da instalação do Bind9 e integridade da configuração.
 - **Controle de Versão**: Verifica automaticamente se o script possui atualizações para garantir que você tenha os patches de segurança mais recentes.
 
-## 🛠️ Requisitos
+## Requisitos
 
 - **SO**: Linux (Debian, Ubuntu, CentOS, RHEL suportados).
 - **Service**: Bind9 (ISC BIND) instalado.
 - **Tools**: `curl` e privilégios de `sudo`.
 
-## 🚀 Instalação Rápida
+## Instalação Rápida
 
 1. **Baixe o arquivo no servidor:**
 
@@ -129,7 +128,7 @@ dig @localhost bradesco2.com.br | grep AUTHORITY
 ;; flags: qr aa rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
 ```
 
-## ⚠️ systemctl
+## systemctl
 
 - O script utiliza do `systemctl` para reiniciar os serviços, você pode utilizar o `service` para reiniciar sem problemas.
 - Se o seu bind9 está em um diretorio de instalação padrão, exemplo, `/var/lib/bind/` crie um syslink para o named ou altere a variavel BIND_DIR_DEBIAN
@@ -140,23 +139,23 @@ ln -s /var/lib/bind/ /var/named
 
 ---
 
-## 🛠️ Troubleshooting (Solução de Problemas)
+## Troubleshooting (Solução de Problemas)
 
 - **Permissões**: Certifique-se de que o script tem permissão de execução `+x`.
 - **Conectividade**: Verifique se o seu servidor consegue alcançar `raw.githubusercontent.com`.
 - **Logs**: Verifique `journalctl -u named` se o Bind9 falhar ao reiniciar.
 
-## ⚠️ Aviso Legal
+## Aviso Legal
 
 > [!WARNING]
 > Este software é fornecido "tal como está". Certifique-se sempre de ter permissão explícita antes de executar. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto nos dados causados ​​por esta ferramenta.
 
-## 📚 Detailed Tutorial
+## Detailed Tutorial
 
 Para um guia completo, passo a passo, confira meu artigo completo:
 
-👉 [**Filtrar domínios maliciosos conhecidos no Bind9**](https://perciocastelo.com.br/blog/filter-known-malicious-domains-in-Bind9.html)
+👉 [**Filtrando domínios maliciosos conhecidos no Bind9**](https://perciocastelo.com.br/blog/filtering-known-malicious-domains-in-Bind9.html)
 
-## Licença 📄
+## Licença
 
 Este projeto está licenciado sob a **GNU General Public License v3.0**. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
