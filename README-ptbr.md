@@ -6,156 +6,153 @@ Readme: [EN](README.md)
 
 <img width="700" alt="BindFilter" src="bindfilter-cover.webp" />
 
-Uma ferramenta poderosa para filtrar domínios maliciosos conhecidos no Bind9. Este script automatiza a proteção contra DNS spoofing e DNS hijacking, mantendo suas listas de bloqueio atualizadas e configuradas corretamente.
+Uma ferramenta de DNS sinkhole para BIND9/Named que bloqueia domínios maliciosos conhecidos redirecionando-os para `127.0.0.1`. Projetada para funcionar universalmente em **cPanel/WHM**, **HestiaPanel**, **DirectAdmin** e servidores **Debian/Ubuntu** ou **RHEL/AlmaLinux** puros, automatiza a proteção contra DNS spoofing e DNS hijacking com patching inteligente compatível com views, backups automáticos e reloads sem downtime.
 
 ---
 
-## Funcionalidades
+## 🚀 Funcionalidades (v2.1.0)
 
-- **Atualizações Automatizadas**: Baixa as versões mais recentes de `blockeddomains.db` e `blocked_domain_acl.conf`.
-- **Filtragem DNS**: Aplica políticas de segurança de forma integrada à sua instância do Bind9.
-- **Verificação de Ambiente**: Verificação nativa da instalação do Bind9 e integridade da configuração.
-- **Controle de Versão**: Verifica automaticamente se o script possui atualizações para garantir que você tenha os patches de segurança mais recentes.
+* **Suporte Universal a Painéis e Distribuições:** Auto-detecta **cPanel/WHM** (`/etc/named.conf` com views), **HestiaPanel** (`/etc/bind/named.conf.local`), **DirectAdmin** (RHEL ou Debian) e ambientes BIND9 sem painel.
+* **Injeção Compatível com Views:** Detecta automaticamente blocos `view "..." { ... }` (como `localhost_resolver`, `internal`, `external` no cPanel/WHM) e injeta o `include` da ACL dentro de cada view via Python3 (com fallback POSIX `awk`).
+* **Backup Automático:** Sempre cria um backup com timestamp do arquivo de configuração antes de qualquer modificação.
+* **Reload Sem Downtime:** Preferência por `rndc reload` (recarga em memória, sem interrupção de serviço) com fallback automático para `systemctl reload`/`restart` e `service`.
+* **Validação de Configuração:** Executa `named-checkconf` antes de qualquer reload — aborta se a configuração estiver inválida para evitar indisponibilidade.
+* **Gestão Individual de Domínios:** Adicione (`--add`) ou remova (`--remove`) domínios específicos da lista de bloqueio sem re-baixar a lista completa.
+* **Modo Dry-Run (`-n, --dry-run`):** Simula todas as operações sem tocar em nenhum arquivo ou serviço.
+* **Modo Stats (`--stats`):** Exibe total de domínios bloqueados, tamanho dos arquivos, painel detectado, modo de views e data de última modificação.
+* **Desinstalação Limpa (`--uninstall`):** Remove toda a configuração injetada (dentro de views ou global) e restaura o ambiente de forma limpa.
+* **Substituição Automática de HOSTNAME:** Registros SOA gerados com o hostname real do servidor, sem placeholders.
+* **Normalização de Paths:** Arquivos ACL baixados do GitHub são automaticamente corrigidos para usar os paths de zona corretos do ambiente local.
 
-## Requisitos
+## 📋 Pré-requisitos
 
-- **SO**: Linux (Debian, Ubuntu, CentOS, RHEL suportados).
-- **Service**: Bind9 (ISC BIND) instalado.
-- **Tools**: `curl` e privilégios de `sudo`.
+* `bash` 4.0+
+* `named` / `bind9` (ISC BIND instalado)
+* `named-checkconf`
+* `curl`
+* Privilégios de root
 
-## Instalação Rápida
+## 🔧 Uso e Opções
 
-1. **Baixe o arquivo no servidor:**
+```text
+Bind9 DNS Filter & Security v2.1.0
+DNS Sinkhole universal: cPanel/WHM, HestiaPanel, DirectAdmin, Debian, RHEL
 
-```bash
-git clone https://github.com/sr00t3d/bindfilter/
+Uso: bind_filter.sh [COMANDO] [OPÇÕES]
+
+Comandos:
+  -r, --run               Instalação completa: baixa listas, configura BIND9 e recarrega
+  -u, --update [ALVO]     Atualiza arquivos de bloqueio. Alvos: all | zone | acl
+      --add DOMÍNIO       Adiciona um domínio à ACL local de bloqueio e recarrega
+      --remove DOMÍNIO    Remove um domínio da ACL local e recarrega
+  -c, --check             Verifica status do ambiente (arquivos, serviço, validação)
+      --stats             Exibe estatísticas da lista de bloqueio atual
+      --uninstall         Remove as configurações de bloqueio e restaura named.conf
+
+Opções:
+  -n, --dry-run           Simula as operações sem efetuar alterações reais
+  -v, --verbose           Exibir mensagens de debug detalhadas
+      --no-color          Desativar cores na saída de terminal
+      --no-restart        Pula o reload/restart do BIND9 (útil em scripts de automação)
+  -h, --help              Exibir este menu de ajuda
 ```
 
-2. **Dê permissão de execução:**
+## 💡 Exemplos Práticos
 
-```bash
-cd bindfilter/
-chmod +x bind_filter.sh
-```
-
-3. **Execute o script:**
-
-```bash
-./bind_filter.sh VALOR
-```
-### Opções
-
-| Opções | Descrição |
-| :--- | :--- |
-| `-r, --run` | Aplica filtros DNS e reinicia/recarrega o Bind9. |
-| `-u, --update all` | Atualiza os arquivos de zona e ACL. |
-| `-u, --update zone` | Atualizações apenas o arquivo `blockeddomains.db`. |
-| `-u, --update acl` | Atualizações apenas o arquivo `blocked_domain_acl.conf`. |
-| `-c, --check` | Valida o ambiente Bind9 atual. |
-| `-h, --help` | Exibe mensagem de ajuda. |
-
-Exemplos:
-
-Instalar a configuração:
-
+**Instalação completa (auto-detecta OS e versão do BIND):**
 ```bash
 ./bind_filter.sh -r
-
-[!] Checking Bind9 installation...
-[+] Bind9 detected.
-[+] Configuration file found: /etc/bind/named.conf
-[+] Downloading blocked zones list...
-[+] Downloading ACL configuration...
-[!] ACL include already exists in config.
-[!] Restarting DNS service (bind9)...
-[+] Service restarted successfully.
 ```
 
-**Atualizar todos os arquivo de configuração:**
-
-
+**Simular instalação completa sem alterar nada:**
 ```bash
-./bind_filter.sh -u all
-
-[!] Checking Bind9 installation...
-[+] Bind9 detected.
-[+] Configuration file found: /etc/bind/named.conf
-[!] Updating ALL files...
-[+] Downloading blocked zones list...
-[+] Downloading ACL configuration...
-[!] Restarting DNS service (bind9)...
-[+] Service restarted successfully.
+./bind_filter.sh -r --dry-run
 ```
 
-**Verifica as configurações:**
+**Adicionar um domínio malicioso manualmente:**
+```bash
+./bind_filter.sh --add malware.exemplo.com.br
+```
 
+**Remover um domínio da lista de bloqueio:**
+```bash
+./bind_filter.sh --remove ads.exemplo.net
+```
+
+**Atualizar apenas a ACL (sem re-baixar o .db de zona):**
+```bash
+./bind_filter.sh -u acl
+```
+
+**Verificar saúde do ambiente:**
 ```bash
 ./bind_filter.sh -c
-
---- CHECK MODE ---
-Checking files:
- [OK] /etc/bind/named.conf
- [OK] /etc/bind/zones/blockeddomains.db
- [OK] /etc/bind/blocked_domain_acl.conf
-
-ACTIVE
 ```
 
-*Nota: Sempre revise scripts antes de executá-los com privilégios de superusuário (sudo).*
-
-## Resultados de zona sem autoridade
-
-Domínio `bradesco.com.br` **EXISTE** na `/etc/bind/blocked_domain_acl.conf`
-
+**Exibir estatísticas da lista:**
 ```bash
-grep bradesco.com.br /etc/bind/blocked_domain_acl.conf 
-zone "bradesco.com.br" {type master; file "/etc/bind/zones/blockeddomains.db";};
+./bind_filter.sh --stats
 ```
 
-Resposta de autoridade `0`:
-
+**Desinstalação completa:**
 ```bash
-dig @localhost bradesco.com.br | grep AUTHORITY
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+./bind_filter.sh --uninstall
 ```
 
-Domínio `bradesco2.com.br` **NÃO EXISTE** na `/etc/bind/blocked_domain_acl.conf`
+## 📝 Exemplo de Saída
 
-Resposta de autoridade `1`:
+### `-r` (Instalação Completa):
+```text
+ ______ __           __ _______ __ __ __
+|   __ \__|.-----.--|  |    ___|__|  |  |_.-----.----.
+|   __ <  ||     |  _  |    ___|  |  |   _|  -__|   _|
+|______/__||__|__|_____|___|   |__|__|____|_____|__|
 
-```bash
-dig @localhost bradesco2.com.br | grep AUTHORITY
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+  DNS Sinkhole para BIND9/Named — v2.1.0
+  cPanel · HestiaPanel · DirectAdmin · Debian · RHEL
+
+[→] Detectando ambiente BIND9...
+[+] Ambiente detectado: cPanel/WHM (RHEL/AlmaLinux — named com views)
+[+] Config:    /etc/named.conf
+[+] Inject:    /etc/named.conf
+[+] Serviço:   named
+[+] Zonas:     /var/named/zones/blocked
+[+] ACL:       /etc/named.blocked_acl.conf
+[+] Painel:    cpanel
+[+] Views:     true
+[→] Baixando lista de zonas bloqueadas...
+[+] Zona de bloqueio instalada: /var/named/zones/blocked/blockeddomains.db
+[→] Baixando configuração de ACL...
+[+] ACL instalada: /etc/named.blocked_acl.conf
+[+] Backup criado: /etc/named.conf.bkp.20261119_211428
+Inserted include into 3 view(s): localhost_resolver, external, internal
+[+] Include da ACL injetado em cada view de /etc/named.conf
+[→] Validando configuração com named-checkconf...
+[+] Configuração válida.
+[→] Recarregando serviço named...
+[+] Instalação completa!
 ```
 
-## systemctl
+### `--stats`:
+```text
+=== Estatísticas bindfilter ===
 
-- O script utiliza do `systemctl` para reiniciar os serviços, você pode utilizar o `service` para reiniciar sem problemas.
-- Se o seu bind9 está em um diretorio de instalação padrão, exemplo, `/var/lib/bind/` crie um syslink para o named ou altere a variavel BIND_DIR_DEBIAN
-
-```bash
-ln -s /var/lib/bind/ /var/named
+  Domínios bloqueados na ACL : 218
+  Tamanho da ACL             : 20K
+  Última modificação         : 2026-11-19 21:14:28
+  Tamanho do sinkhole .db    : 4.0K
+  Versão do script           : v2.1.0
+  Painel detectado           : cpanel
+  Ambiente                   : named (/etc/named.conf)
+  Inject em                  : /etc/named.conf
+  Usa views                  : true
 ```
+
+## 📄 Licença
+
+Este projeto é distribuído sob a licença [Apache License 2.0](LICENSE).
 
 ---
-
-## Troubleshooting (Solução de Problemas)
-
-- **Permissões**: Certifique-se de que o script tem permissão de execução `+x`.
-- **Conectividade**: Verifique se o seu servidor consegue alcançar `raw.githubusercontent.com`.
-- **Logs**: Verifique `journalctl -u named` se o Bind9 falhar ao reiniciar.
-
-## Aviso Legal
-
-> [!WARNING]
-> Este software é fornecido "tal como está". Certifique-se sempre de ter permissão explícita antes de executar. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto nos dados causados ​​por esta ferramenta.
-
-## Detailed Tutorial
-
-Para um guia completo, passo a passo, confira meu artigo completo:
-
-👉 [**Filtrando domínios maliciosos conhecidos no Bind9**](https://perciocastelo.com.br/blog/filtering-known-malicious-domains-in-Bind9.html)
-
-## Licença
-
-Este projeto está licenciado sob a **GNU General Public License v3.0**. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+Autor: **Percio Castelo**  
+Contato: [contato@perciocastelo.com.br](mailto:contato@perciocastelo.com.br)  
+Website: [https://perciocastelo.com.br](https://perciocastelo.com.br)
